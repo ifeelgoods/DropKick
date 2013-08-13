@@ -2,11 +2,15 @@
  * DropKick
  *
  * Highly customizable <select> lists
- * https://github.com/JamieLottering/DropKick
+ * https://github.com/robdel12/DropKick
  *
  * &copy; 2011 Jamie Lottering <http://github.com/JamieLottering>
  *                        <http://twitter.com/JamieLottering>
- * 
+ *
+ * History:
+ * 2013-02: live > on (joeblynch)
+ * 2013-06: + trigger "change" at update (so one can detect the change) (joeri210)
+ *          + method: "reload" to rebuild the pulldown (when dynamic populated) (joeri210)
  */
 (function ($, window, document) {
 
@@ -18,7 +22,7 @@
   if (!ie6) {
     document.documentElement.className = document.documentElement.className + ' dk_fouc';
   }
-  
+
   var
     // Public methods exposed to $.fn.dropkick()
     methods = {},
@@ -32,7 +36,8 @@
       'up'    : 38,
       'right' : 39,
       'down'  : 40,
-      'enter' : 13
+      'enter' : 13,
+	'tab'	  : 9
     },
 
     // HTML template for the dropdowns
@@ -183,6 +188,16 @@
     }
   };
 
+  // Reload / rebuild, in case of dynamic updates etc.
+  // Credits to Jeremy (http://stackoverflow.com/users/1380047/jeremy-p)
+  methods.reload = function () {
+    var $select = $(this);
+    var data = $select.data('dropkick');
+    $select.removeData("dropkick");
+    $("#dk_container_"+ data.id).remove();
+    $select.dropkick(data.settings);
+  };
+
   // Expose the plugin
   $.fn.dropkick = function (method) {
     if (!ie6) {
@@ -217,6 +232,13 @@
           _openDropdown($dk);
         }
         e.preventDefault();
+      break;
+
+	case keyMap.tab:
+        if(open){
+      	_updateFields(current.find('a'), $dk);
+        	_closeDropdown($dk);
+        }
       break;
 
       case keyMap.up:
@@ -261,7 +283,7 @@
     data  = $dk.data('dropkick');
 
     $select = data.$select;
-    $select.val(value);
+    $select.val(value).trigger('change'); // Added to let it act like a normal select
 
     $dk.find('.dk_label').text(label);
 
@@ -364,11 +386,11 @@
         $dk     = $option.parents('.dk_container').first(),
         data    = $dk.data('dropkick')
       ;
-    
+
       _closeDropdown($dk);
       _updateFields($option, $dk);
       _setCurrent($option.parent(), $dk);
-    
+
       e.preventDefault();
       return false;
     });
@@ -397,6 +419,13 @@
       if ($dk) {
         _handleKeyBoardNav(e, $dk);
       }
+    });
+    
+    // Globally handle a click outside of the dropdown list by closing it.
+    $(document).on('click', null, function(e) {
+        if($(e.target).closest(".dk_container").length == 0) {
+            _closeDropdown($('.dk_toggle').parents(".dk_container").first());
+        }
     });
   });
 })(jQuery, window, document);
