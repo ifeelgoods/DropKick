@@ -10,7 +10,7 @@
  */
 (function ($, window, document) {
 
-  var msVersion = navigator.userAgent.match(/MSIE ([0-9]{1,}[\.0-9]{0,})/),
+  var msVersion = navigator.userAgent.match(/(MSIE |rv:)([0-9]{1,}[\.0-9]{0,})/),
       msie = !!msVersion,
       ie6 = msie && parseFloat(msVersion[1]) < 7;
 
